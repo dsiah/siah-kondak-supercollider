@@ -62,6 +62,8 @@ Server.default = s = Server.internal.boot;
 prefGetFunc = {
 	//IO things. The order is: lowThreshold, highThreshold, attackDelay.
 	//Check for pref file, create if necessary with prefSetFunc.
+
+	/*
 	if(File.exists(prefFile), {
 		g = File(prefFile, "r+");
 		//get low midi note
@@ -80,6 +82,11 @@ prefGetFunc = {
 			prefSetFunc.value;
 
 	});
+	*/
+
+	lowThreshold = 48;
+	highThreshold = 96;
+	attackDelay = 0.01;
 }
 );
 
@@ -289,10 +296,10 @@ s.doWhenBooted({
 						//Else, simple noteOn:
 						if((msg[3].cpsmidi<= highThreshold) &&
 							(msg[3].cpsmidi>= lowThreshold)){
-							//"Note struck at time: ".post;
-							//time.post;
-							//" freq: ".post;
-							//(msg[3].cpsmidi).postln;
+							"Note struck at time: ".post;
+							time.post;
+							" freq: ".post;
+							(msg[3].cpsmidi).postln;
 							lastPitch = (msg[3]).cpsmidi.round(1);//Reset pitch
 							~m_out_server.noteOn(1, lastPitch, 64);
 							~restCheckOn = true;//Ok to start rests again
@@ -314,8 +321,3 @@ s.doWhenBooted({
 
 })//End doWhenBooted
 )//End server asgt block
-
-
-
-
-
