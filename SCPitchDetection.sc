@@ -195,11 +195,11 @@ s.doWhenBooted({
 	separatorLine2 = StaticText(w, Rect(0, 205, 800, 15));
 	separatorLine2.string =  "_________________________________________________________________________________________";
 
-	//Create set button
+	// Create set button
 	q = Button.new(w,Rect(190,240,100,30)).states_([["Continue"]]);
 	q.toolTip_("You can set MIDI range and attack delay before but not during each session.");
 
-	//Set button functionality
+	// Set button functionality
 	q.action = {
 		prefSetFunc.value;
 		w.close;
@@ -208,14 +208,14 @@ s.doWhenBooted({
 	w.front;
 
 
-	//NOTES
+	// NOTES
 	w.onClose_({
 
 		Routine.run({
-			//Allocate buffer space.
+			// Allocate buffer space.
 			b = Buffer.alloc(s, 512);
 
-			/*Checks onset of notes,rests; sends respective triggers.*/
+			/* Checks onset of notes,rests; sends respective triggers. */
 			SynthDef(\pitchAndOnsets, {
 
 				var in, freq, hasFreq, chain, onsets;
@@ -223,7 +223,7 @@ s.doWhenBooted({
 
 				in = SoundIn.ar(0);
 				# freq, hasFreq = Tartini.kr(in);
-				//freq.poll;
+				freq.poll;
 
 				chain = FFT(b, in);
 				onsets = Onsets.kr(chain, 0.9, \rcomplex);
