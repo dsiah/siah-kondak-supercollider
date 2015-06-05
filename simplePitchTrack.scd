@@ -1,24 +1,60 @@
-s = FreqScope.server.boot;
-FreqScope.new(400, 200, 0);
-
+// s = FreqScope.server.boot;
+// FreqScope.new(400, 200, 0);
 
 (
-MIDIClient.init;
-m = MIDIOut(0);
-~onOrOff = false;
+
+MIDIClient.init; // initialize the MIDIClient on Server
+m = MIDIOut(0); // use first MIDI Device (IAC BUS 1)
+
+~onOrOff = false; // keep track of note being (or not being) played
 ~pitch = 0;
 
+x = {
+	var in, hasFreq, freq, out;
+
+	in = SoundIn.ar(0); // pipe sound to in
+
+	/*
+	   Pipe in to Pitch
+	   calculate the MIDI number of the input sound
+	   median: remove outliers, 11 in this case takes the median of last 11 frames
+	*/
+
+	freq = Pitch.kr(in, execFreq: 200, median: 11, ampThreshold: 0.1).cpsmidi.round;
+	// Send the Pitch to global variable ~pitch
+	SendReply.ar(Impulse.ar(100), 'pitch', [freq]);
+}.play;
+
 SynthDef(\threshTest, {
+	// above the high triggers the noteOn
+	// below the low releases the note (noteOff triggered)
 	arg highThresh = (-22), lowThresh = (-40);
-	var sig, amp,highTrig, lowTrig, onOrOff;
-	sig = SoundIn.ar(0);
+	var sig, amp, highTrig, lowTrig, in;
+
+	in = SoundIn.ar(0);
+	sig = DelayN.ar(in, delaytime: 0.02);
+	// take signal and applies Amplitude => returns the Amplitude in Decibals
 	amp = Amplitude.kr(sig).ampdb;
-	amp = K2A.ar(amp);
-	highTrig = amp >= highThresh;
+	amp = K2A.ar(amp); // to improve resolution of amplitude tracking control -> audio rate
+
+	highTrig = amp >= highThresh; // check and create booleans
 	lowTrig = amp <= lowThresh;
-	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]);
-	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);
+
+	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
+	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
 }).play;
+
+
+/*
+   OSC Responder (event emitters) for OSC messages
+   serve the purpose of dispatching anonymous functions
+*/
+
+~oscr3.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
+~oscr3 = OSCresponder(nil, 'pitch', {
+	|time, resp, msg|
+	~pitch = msg[3]; // save pitch to global variable ~pitch
+}).add;
 
 ~oscr1.remove;
 ~oscr1 = OSCresponder(nil, 'highTrigVal', {
@@ -28,7 +64,8 @@ SynthDef(\threshTest, {
 			if( ~onOrOff,
 				{},
 				{
-			    //"note on!".postln;
+			    "note on, pitch ".post;
+			    ~pitch.postln;
 			    m.noteOn(16, ~pitch, 60);
 				~onOrOff = true;}
 			);
@@ -38,34 +75,16 @@ SynthDef(\threshTest, {
 ~oscr2.remove;
 ~oscr2 = OSCresponder(nil, 'lowTrigVal', {
 	|time, resp, msg|
-	if( msg[3] == 1,
-		{
-			if( ~onOrOff,
-				{
-				//"note off".postln;
-				~onOrOff = false;},
-				{}
-			);
-		}, {
-
-	});
+	if( msg[3] == 1,{
+		if( ~onOrOff, {
+			"note off".postln;
+			m.allNotesOff(16);
+			~onOrOff = false;
+		}, {});
+	}, {});
 }).add;
 
-~oscr3.remove;
-~oscr3 = OSCresponder(nil, 'pitch', {
-	|time, resp, msg|
-	~pitch = msg[3];
-	//~pitch.postln;
-}).add;
 
-x = {
-	var in, amp, hasFreq, freq, out;
-
-	in = SoundIn.ar(0);
-	freq = Pitch.kr(in, execFreq: 200, median: 11, ampThreshold: 0.1).cpsmidi.round;
-	//freq.poll;
-	SendReply.ar(Impulse.ar(50), 'pitch', [freq]);
-}.play;
 
 /*
 SynthDef("pitchFollow1", {
@@ -81,14 +100,9 @@ midi            = freq.cpsmidi.round;
 out             = Mix.new(VarSaw.ar(freq * [0.5,1,2], 0, LFNoise1.kr(0.3,0.1,0.1), amp));
 
 6.do({
-out = AllpassN.ar(out, 0.040, [0.040.rand,0.040.rand], 2);
+    out = AllpassN.ar(out, 0.040, [0.040.rand,0.040.rand], 2);
 });
-
-onsets.poll(20); // currently pretty crummy -- look into 3rd party Onset detection.
-
-// Current Problems Amp is not a number -- its a ugen
-// Also Unable to trigger if statenments every few miliseconds.
-
+onsets.poll(20);
 Out.ar(0,out);
 }).play(s);
 */
