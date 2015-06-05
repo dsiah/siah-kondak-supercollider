@@ -4,23 +4,46 @@ MIDIClient.init;
 
 (
 
+~onOrOff = false;
+
 SynthDef(\threshTest, {
-	arg thresh = (-5);
-	var sig, amp,trig;
+	arg highThresh = (-15), lowThresh = (-50);
+	var sig, amp,highTrig, lowTrig, onOrOff;
 	sig = SoundIn.ar(0);
 	amp = Amplitude.kr(sig).ampdb;
 	amp = K2A.ar(amp);
-	trig = amp >= thresh;
-	SendReply.ar(Impulse.ar(50), 'trigVal', [trig]);
+	highTrig = amp >= highThresh;
+	lowTrig = amp <= lowThresh;
+	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]);
+	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);
 }).play;
 
 ~oscr1.remove;
-~oscr1 = OSCresponder(nil, 'trigVal', {
+~oscr1 = OSCresponder(nil, 'highTrigVal', {
 	|time, resp, msg|
 	if( msg[3] == 1,
 		{
-			"note on!".postln;
-		}, {" ".postln;});
+			if( ~onOrOff,
+				{},
+				{"note on!".postln;
+				~onOrOff = true;}
+			);
+		}, {});
+}).add;
+
+~oscr2.remove;
+~oscr2 = OSCresponder(nil, 'lowTrigVal', {
+	|time, resp, msg|
+	if( msg[3] == 1,
+		{
+			if( ~onOrOff,
+				{"note off".postln;
+				~onOrOff = false;},
+				{}
+			);
+		}, {
+
+	});
 }).add;
 
 x = {
