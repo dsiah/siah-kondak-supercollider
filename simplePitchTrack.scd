@@ -1,13 +1,15 @@
 s = FreqScope.server.boot;
 FreqScope.new(400, 200, 0);
-MIDIClient.init;
+
 
 (
-
+MIDIClient.init;
+m = MIDIOut(0);
 ~onOrOff = false;
+~pitch = 0;
 
 SynthDef(\threshTest, {
-	arg highThresh = (-15), lowThresh = (-50);
+	arg highThresh = (-22), lowThresh = (-40);
 	var sig, amp,highTrig, lowTrig, onOrOff;
 	sig = SoundIn.ar(0);
 	amp = Amplitude.kr(sig).ampdb;
@@ -25,7 +27,9 @@ SynthDef(\threshTest, {
 		{
 			if( ~onOrOff,
 				{},
-				{"note on!".postln;
+				{
+			    //"note on!".postln;
+			    m.noteOn(16, ~pitch, 60);
 				~onOrOff = true;}
 			);
 		}, {});
@@ -37,7 +41,8 @@ SynthDef(\threshTest, {
 	if( msg[3] == 1,
 		{
 			if( ~onOrOff,
-				{"note off".postln;
+				{
+				//"note off".postln;
 				~onOrOff = false;},
 				{}
 			);
@@ -46,15 +51,20 @@ SynthDef(\threshTest, {
 	});
 }).add;
 
+~oscr3.remove;
+~oscr3 = OSCresponder(nil, 'pitch', {
+	|time, resp, msg|
+	~pitch = msg[3];
+	//~pitch.postln;
+}).add;
+
 x = {
 	var in, amp, hasFreq, freq, out;
 
 	in = SoundIn.ar(0);
-	amp  = Amplitude.kr(in);
 	freq = Pitch.kr(in, execFreq: 200, median: 11, ampThreshold: 0.1).cpsmidi.round;
 	//freq.poll;
-
-
+	SendReply.ar(Impulse.ar(50), 'pitch', [freq]);
 }.play;
 
 /*
