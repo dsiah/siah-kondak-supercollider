@@ -1,5 +1,6 @@
 s = FreqScope.server.boot;
 FreqScope.new(400, 200, 0);
+MIDIClient.init;
 
 (
 x = {
@@ -36,4 +37,9 @@ SynthDef("pitchFollow1", {
     Out.ar(0,out);
 
 }).play(s);
+
+MIDIIn.connect;
+m = MIDIOut(0, MIDIClient.destinations.at(0).uid);
+m.noteOn(16, 60, 60);
+
 )
