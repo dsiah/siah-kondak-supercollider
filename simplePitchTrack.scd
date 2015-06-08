@@ -55,6 +55,7 @@ SynthDef(\threshTest, {
 ~oscr3.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
 ~oscr3 = OSCresponder(nil, 'pitch', {
 	|time, resp, msg|
+
 	if( msg[3] == ~pitch,
 		{},
 		{
@@ -69,22 +70,23 @@ SynthDef(\threshTest, {
 ~oscr1.remove;
 ~oscr1 = OSCresponder(nil, 'highTrigVal', {
 	|time, resp, msg|
+
 	if( msg[3] == 1,
 		{
 			if( ~onOrOff,
-				{},
-				{
-			    "note on, pitch ".post;
-			    ~pitch.postln;
-			    m.noteOn(16, ~pitch, 60);
-				~onOrOff = true;}
-			);
+				{}, {
+					"note on, pitch ".post;
+					~pitch.postln;
+					m.noteOn(16, ~pitch, 60);
+					~onOrOff = true
+			});
 		}, {});
 }).add;
 
 ~oscr2.remove;
 ~oscr2 = OSCresponder(nil, 'lowTrigVal', {
 	|time, resp, msg|
+
 	if( msg[3] == 1,{
 		if( ~onOrOff, {
 			"note off".postln;
