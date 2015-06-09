@@ -1,7 +1,3 @@
-// s = FreqScope.server.boot;
-// ~w1 = FreqScope.new(800, 400, 0);
-// ~w2 = FreqScope.new(800, 400, 8);
-
 (
 
 MIDIClient.init; // initialize the MIDIClient on Server
@@ -11,43 +7,39 @@ m = MIDIOut(0); // use first MIDI Device (IAC BUS 1)
 ~pitch = 0;
 ~changePitch = 0;
 ~lastPitch = 0;
-~resolution = 27;
+~resolution = 27; // Delay of frames between notes -- (Hacky should be fixed)
 ~currentRes = 0;
 
-
-x = {
-	var in, hasFreq, freq, out, tart, changeFreq;
-
-
-	in = SoundIn.ar(0); // pipe sound to in
+SynthDef(\freqTrack, {
+	arg threshold = (0.93), median = (15), framesize = (2048), overlap = (1024), delayTime = (0.05);
+	var freq, in, tart, changeFreq;
 
 	/*
-	Pipe in to Pitch
-	calculate the MIDI number of the input sound
-	median: remove outliers, 11 in this case takes the median of last 11 frames
+	  Pipe in to Pitch
+	  calculate the MIDI number of the input sound
+	  median: remove outliers, 11 in this case takes the median of last 11 frames
 	*/
-	tart = Tartini.kr(in);
-	//freq = Pitch.kr(in, execFreq: 200, median: 21, ampThreshold: 0.1).cpsmidi.round;
-	freq = Median.kr(15, tart).cpsmidi.round;
-	// Send the Pitch to global variable ~pitch
-	changeFreq = DelayN.kr(Median.kr(23, tart).cpsmidi.round, delaytime: 0.05);
-	SendReply.ar(Impulse.ar(200), 'pitch', [freq]);
-	SendReply.ar(Impulse.ar(200), 'changePitch', [changeFreq]);
-}.play;
-
-SynthDef(\threshTest, {
-	// above the high triggers the noteOn
-	// below the low releases the note (noteOff triggered)
-	arg highThresh = (-22), lowThresh = (-40);
-	var sig, amp, highTrig, lowTrig, in;
 
 	in = SoundIn.ar(0);
-	sig = DelayN.ar(in, delaytime: 0.05);
+	tart = Tartini.kr(in, threshold, framesize, 0, overlap);
+	freq = Median.kr(15, tart).cpsmidi.round;
+	changeFreq = DelayN.kr(Median.kr(23, tart).cpsmidi.round, delaytime: delayTime);
+
+	SendReply.ar(Impulse.ar(200), 'pitch', [freq]);
+	SendReply.ar(Impulse.ar(200), 'changePitch', [changeFreq]);
+}).play/*(args: [\median, 20])*/;
+
+SynthDef(\threshTest, {
+	arg highThresh = (-22), lowThresh = (-40), delayTime = (0.05);
+	var amp, highTrig, lowTrig, in, sig;
+
+	in = SoundIn.ar(0);
+	sig = DelayN.ar(in, delaytime: delayTime);
 	// take signal and applies Amplitude => returns the Amplitude in Decibals
 	amp = Amplitude.kr(sig).ampdb;
 	amp = K2A.ar(amp); // to improve resolution of amplitude tracking control -> audio rate
 
-	highTrig = amp >= highThresh; // check and create booleans
+	highTrig = amp >= highThresh;
 	lowTrig = amp <= lowThresh;
 
 	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
@@ -55,37 +47,35 @@ SynthDef(\threshTest, {
 }).play;
 
 /*
-OSC Responder (event emitters) for OSC messages
-serve the purpose of dispatching anonymous functions
+  OSC Responder (event emitters) for OSC messages
+  serve the purpose of dispatching anonymous functions
 */
 
-~oscr4.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
+~oscr4.remove;
 ~oscr4 = OSCresponder(nil, 'pitch', {
 	|time, resp, msg|
 
 	~currentRes = ~currentRes -1;
-
-	if( msg[3] == ~pitch,
+	if(msg[3] == ~pitch,
 		{}, {
 			~pitch = msg[3]; // save pitch to global variable ~pitch
-		}
-	);
+	});
 
 }).add;
 
-
-~oscr3.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
+~oscr3.remove;
 ~oscr3 = OSCresponder(nil, 'changePitch', {
 	|time, resp, msg|
+
 	~changePitch = msg[3];
 	if ((~currentRes <= 0) && ~onOrOff
 		&& not(~lastPitch == ~changePitch) && not(~lastPitch == ~pitch), {
-		"note on slur, pitch ".post;
-		~pitch.postln;
-		~lastPitch.postln;
-		m.noteOn(16, ~pitch, 60);
-		~lastPitch = ~pitch;
-		~currentRes = ~resolution;
+			"note on slur, pitch ".post;
+			~pitch.postln;
+			~lastPitch.postln;
+			m.noteOn(16, ~pitch, 60);
+			~lastPitch = ~pitch;
+			~currentRes = ~resolution;
 	});
 
 }).add;
@@ -93,6 +83,7 @@ serve the purpose of dispatching anonymous functions
 ~oscr1.remove;
 ~oscr1 = OSCresponder(nil, 'highTrigVal', {
 	|time, resp, msg|
+	// msg[4], 5, 6, etc will access the other values sent in the third arg of SendReply
 
 	if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
 		"note on, pitch ".post;
