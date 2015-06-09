@@ -54,13 +54,10 @@ SynthDef(\threshTest, {
 	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
 }).play;
 
-
 /*
 OSC Responder (event emitters) for OSC messages
 serve the purpose of dispatching anonymous functions
 */
-
-
 
 ~oscr4.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
 ~oscr4 = OSCresponder(nil, 'pitch', {
@@ -76,47 +73,20 @@ serve the purpose of dispatching anonymous functions
 
 }).add;
 
+
 ~oscr3.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
 ~oscr3 = OSCresponder(nil, 'changePitch', {
 	|time, resp, msg|
-
-	if( msg[3] == ~changePitch,
-		{},
-		{
-			~changePitch = msg[3]; // save pitch to global variable ~pitch
-			if (~currentRes <= 0,
-				{
-					if( ~onOrOff,
-						{
-							if ( ~lastPitch == ~changePitch,
-								{},
-								{
-									if( ~lastPitch == ~pitch,
-										{},
-										{
-											"note on slur, pitch ".post;
-											~pitch.postln;
-											~lastPitch.postln;
-											m.noteOn(16, ~pitch, 60);
-											~lastPitch = ~pitch;
-											~currentRes = ~resolution;
-										}
-									);
-
-
-								}
-							);
-						},
-						{
-
-						}
-					);
-				},
-				{}
-			);
-
-		}
-	);
+	~changePitch = msg[3];
+	if ((~currentRes <= 0) && ~onOrOff
+		&& not(~lastPitch == ~changePitch) && not(~lastPitch == ~pitch), {
+		"note on slur, pitch ".post;
+		~pitch.postln;
+		~lastPitch.postln;
+		m.noteOn(16, ~pitch, 60);
+		~lastPitch = ~pitch;
+		~currentRes = ~resolution;
+	});
 
 }).add;
 
@@ -124,26 +94,14 @@ serve the purpose of dispatching anonymous functions
 ~oscr1 = OSCresponder(nil, 'highTrigVal', {
 	|time, resp, msg|
 
-	if( msg[3] == 1,
-		{
-			if( ~onOrOff,
-
-				{},
-				{
-					if (~currentRes <= 0,
-						{
-							"note on, pitch ".post;
-							~pitch.postln;
-							m.noteOn(16, ~pitch, 60);
-							~lastPitch = ~pitch;
-							~onOrOff = true;
-							~currentRes = ~resolution;
-						},
-						{}
-					);
-				}
-			);
-	}, {});
+	if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
+		"note on, pitch ".post;
+		~pitch.postln;
+		m.noteOn(16, ~pitch, 60);
+		~lastPitch = ~pitch;
+		~onOrOff = true;
+		~currentRes = ~resolution;
+	});
 
 }).add;
 
@@ -151,12 +109,10 @@ serve the purpose of dispatching anonymous functions
 ~oscr2 = OSCresponder(nil, 'lowTrigVal', {
 	|time, resp, msg|
 
-	if( msg[3] == 1,{
-		if( ~onOrOff, {
-			"note off".postln;
-			m.allNotesOff(16);
-			~onOrOff = false;
-		}, {});
+	if((msg[3] == 1) && (~onOrOff) , {
+		"note off".postln;
+		m.allNotesOff(16);
+		~onOrOff = false;
 	}, {});
 }).add;
 
