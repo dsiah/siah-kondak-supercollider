@@ -65,14 +65,11 @@ serve the purpose of dispatching anonymous functions
 ~oscr4.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
 ~oscr4 = OSCresponder(nil, 'pitch', {
 	|time, resp, msg|
-<<<<<<< Updated upstream
 
-=======
 	~currentRes = ~currentRes -1;
->>>>>>> Stashed changes
+
 	if( msg[3] == ~pitch,
-		{},
-		{
+		{}, {
 			~pitch = msg[3]; // save pitch to global variable ~pitch
 		}
 	);
@@ -82,6 +79,7 @@ serve the purpose of dispatching anonymous functions
 ~oscr3.remove; // in case oscr"/Users/muddCS15/Downloads/um132-2mx/"3 needs to be reset to avoid overwriting
 ~oscr3 = OSCresponder(nil, 'changePitch', {
 	|time, resp, msg|
+
 	if( msg[3] == ~changePitch,
 		{},
 		{
@@ -129,15 +127,7 @@ serve the purpose of dispatching anonymous functions
 	if( msg[3] == 1,
 		{
 			if( ~onOrOff,
-<<<<<<< Updated upstream
-				{}, {
-					"note on, pitch ".post;
-					~pitch.postln;
-					m.noteOn(16, ~pitch, 60);
-					~onOrOff = true
-			});
-		}, {});
-=======
+
 				{},
 				{
 					if (~currentRes <= 0,
@@ -154,7 +144,7 @@ serve the purpose of dispatching anonymous functions
 				}
 			);
 	}, {});
->>>>>>> Stashed changes
+
 }).add;
 
 ~oscr2.remove;
@@ -170,29 +160,4 @@ serve the purpose of dispatching anonymous functions
 	}, {});
 }).add;
 
-<<<<<<< Updated upstream
-=======
-
-
-/*
-SynthDef("pitchFollow1", {
-var in, amp, freq, hasFreq, out, midi, b, onsets, chain;
-
-b               = Buffer.alloc(s, 1024);
-in              = Mix.new(SoundIn.ar([0,1]));
-# freq, hasFreq = Pitch.kr(in, ampThreshold: 0.07, median: 7, execFreq: 200, peakThreshold: 0.75, median: 5);
-chain           = FFT(b, in);
-onsets          = Onsets.kr(chain, 0.4, \phase); // poor right nows
-amp             = Amplitude.kr(in, 0.05, 0.05);
-midi            = freq.cpsmidi.round;
-out             = Mix.new(VarSaw.ar(freq * [0.5,1,2], 0, LFNoise1.kr(0.3,0.1,0.1), amp));
-
-6.do({
-out = AllpassN.ar(out, 0.040, [0.040.rand,0.040.rand], 2);
-});
-onsets.poll(20);
-Out.ar(0,out);
-}).play(s);
-*/
->>>>>>> Stashed changes
 )
