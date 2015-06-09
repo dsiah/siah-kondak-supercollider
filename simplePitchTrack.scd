@@ -35,8 +35,7 @@ SynthDef(\threshTest, {
 
 	in = SoundIn.ar(0);
 	sig = DelayN.ar(in, delaytime: delayTime);
-	// take signal and applies Amplitude => returns the Amplitude in Decibals
-	amp = Amplitude.kr(sig).ampdb;
+	amp = Amplitude.kr(sig).ampdb; // return Amplitude to to Decibals
 	amp = K2A.ar(amp); // to improve resolution of amplitude tracking control -> audio rate
 
 	highTrig = amp >= highThresh;
@@ -56,9 +55,8 @@ SynthDef(\threshTest, {
 	|time, resp, msg|
 
 	~currentRes = ~currentRes -1;
-	if(msg[3] == ~pitch,
-		{}, {
-			~pitch = msg[3]; // save pitch to global variable ~pitch
+	if(not(msg[3] == ~pitch), {
+		~pitch = msg[3]; // save pitch to global variable ~pitch
 	});
 
 }).add;
@@ -68,14 +66,13 @@ SynthDef(\threshTest, {
 	|time, resp, msg|
 
 	~changePitch = msg[3];
-	if ((~currentRes <= 0) && ~onOrOff
-		&& not(~lastPitch == ~changePitch) && not(~lastPitch == ~pitch), {
-			"note on slur, pitch ".post;
-			~pitch.postln;
-			~lastPitch.postln;
-			m.noteOn(16, ~pitch, 60);
-			~lastPitch = ~pitch;
-			~currentRes = ~resolution;
+	if ((~currentRes <= 0) && ~onOrOff && not(~lastPitch == ~changePitch) && not(~lastPitch == ~pitch), {
+		"note on slur, pitch ".post;
+		~pitch.postln;
+		~lastPitch.postln;
+		m.noteOn(16, ~pitch, 60);
+		~lastPitch = ~pitch;
+		~currentRes = ~resolution;
 	});
 
 }).add;
@@ -83,7 +80,6 @@ SynthDef(\threshTest, {
 ~oscr1.remove;
 ~oscr1 = OSCresponder(nil, 'highTrigVal', {
 	|time, resp, msg|
-	// msg[4], 5, 6, etc will access the other values sent in the third arg of SendReply
 
 	if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
 		"note on, pitch ".post;
@@ -104,7 +100,7 @@ SynthDef(\threshTest, {
 		"note off".postln;
 		m.allNotesOff(16);
 		~onOrOff = false;
-	}, {});
+	});
 }).add;
 
 )
