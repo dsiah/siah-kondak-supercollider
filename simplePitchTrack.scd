@@ -10,14 +10,22 @@ m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 ~lastPitch = 0;
 ~resolution = 27; // Delay of frames between notes -- (Hacky should be fixed)
 ~currentRes = 0;
+~currentDir = thisProcess.nowExecutingPath.dirname;
 
 /* * * * * * * * * * * *
  *        GUI          *
  *        CODE         *
  * * * * * * * * * * * */
 
+
 ~gooey = Window.new("Pitch Tracker", Rect(500,500,500,500));
+
+~convig = File(~currentDir +/+ "configure.txt", "w");
+~convig.write("BLAH\nBlah\nblah");
+~convig.close;
+
 ~gooey.front;
+
 
 SynthDef(\freqTrack, {
 	arg threshold = (0.93), median = (15), framesize = (2048), overlap = (1024), delayTime = (0.10);
