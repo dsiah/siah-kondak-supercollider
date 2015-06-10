@@ -2,8 +2,6 @@
 
 ## To remove:
 - currentRes global
-- 
-
 
 ## To add to config:
 - resolution
@@ -11,10 +9,11 @@
 - m (midi output device)
 - threshold, median, framesize, overlap, delayTime [args of Synth: freqTrack]
 - highThresh, lowThresh, delayTime [args of Synth: threshTest]
+- add octave range
 
 ## Begin Building GUI
 - Implement Tabbing system with QT [Interface (I/O), Manual Preferences]
 - Auto-configuration (tab)
 - build out knobs
 - visual feedback
-- 
+- add octave range

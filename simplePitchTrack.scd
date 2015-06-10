@@ -11,7 +11,7 @@ m = MIDIOut(0); // use first MIDI Device (IAC BUS 1)
 ~currentRes = 0;
 
 SynthDef(\freqTrack, {
-	arg threshold = (0.93), median = (15), framesize = (2048), overlap = (1024), delayTime = (0.05);
+	arg threshold = (0.93), median = (15), framesize = (2048), overlap = (1024), delayTime = (0.10);
 	var freq, in, tart, changeFreq;
 
 	/*
