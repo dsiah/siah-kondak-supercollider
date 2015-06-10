@@ -1,23 +1,37 @@
 (
 
+GUI.qt;          // Platform independent GUI system
 MIDIClient.init; // initialize the MIDIClient on Server
-m = MIDIOut(0); // use first MIDI Device (IAC BUS 1)
+m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 
-~onOrOff = false; // keep track of note being (or not being) played
+~onOrOff = false; // Track note being (or not being) played
 ~pitch = 0;
 ~changePitch = 0;
 ~lastPitch = 0;
 ~resolution = 27; // Delay of frames between notes -- (Hacky should be fixed)
 ~currentRes = 0;
 
+/* * * * * * * * * * * *
+ *        GUI          *
+ *        CODE         *
+ * * * * * * * * * * * */
+
+~gooey = Window.new("Pitch Tracker", Rect(500,500,500,500));
+~gooey.front;
+
 SynthDef(\freqTrack, {
 	arg threshold = (0.93), median = (15), framesize = (2048), overlap = (1024), delayTime = (0.10);
 	var freq, in, tart, changeFreq;
 
 	/*
-	  Pipe in to Pitch
-	  calculate the MIDI number of the input sound
-	  median: remove outliers, 11 in this case takes the median of last 11 frames
+
+	  FreqTrack: Pipe in to Pitch
+	  calculates the MIDI number of the input sound
+	  median: remove outliers, 11 in this case takes the median of last 11 frames,
+	  framesize:
+	  overlap:
+	  delayTime:
+
 	*/
 
 	in = SoundIn.ar(0);
@@ -27,7 +41,7 @@ SynthDef(\freqTrack, {
 
 	SendReply.ar(Impulse.ar(200), 'pitch', [freq]);
 	SendReply.ar(Impulse.ar(200), 'changePitch', [changeFreq]);
-}).play/*(args: [\median, 20])*/;
+}).play;
 
 SynthDef(\threshTest, {
 	arg highThresh = (-22), lowThresh = (-40), delayTime = (0.05);
@@ -36,7 +50,7 @@ SynthDef(\threshTest, {
 	in = SoundIn.ar(0);
 	sig = DelayN.ar(in, delaytime: delayTime);
 	amp = Amplitude.kr(sig).ampdb; // return Amplitude to to Decibals
-	amp = K2A.ar(amp); // to improve resolution of amplitude tracking control -> audio rate
+	amp = K2A.ar(amp);             // to improve resolution of amplitude tracking control -> audio rate
 
 	highTrig = amp >= highThresh;
 	lowTrig = amp <= lowThresh;
@@ -46,8 +60,10 @@ SynthDef(\threshTest, {
 }).play;
 
 /*
+
   OSC Responder (event emitters) for OSC messages
   serve the purpose of dispatching anonymous functions
+
 */
 
 ~oscr4.remove;
