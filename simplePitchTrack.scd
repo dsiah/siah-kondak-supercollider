@@ -13,46 +13,56 @@ m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 ~currentDir  = thisProcess.nowExecutingPath.dirname; // seemingly platform independent (Check TODO)
 ~gooeyBounds = [500, 500, 500, 500];                 // x pos, y pos, width, height
 
-/* * * * * * * * * * * *
-  * - - - - - - - - - - *
- * -       GUI         - *
- * -       CODE        - *
-  *  - - - - - - - - -  *
- * * * * * * * * * * * *
- * TODO: create GUI Scope (that isn't global, TODO)
+
+/*
+    * * * * * * * * * * *
+   * - - - - - - - - - - *
+  * -       GUI         - *
+  * -       CODE        - *
+   *  - - - - - - - - -  *
+    * * * * * * * * * * *
 */
 
-~gooey         = Window.new("Pitch Tracker", Rect(500,500,500,500));
-~devicesBtn    = Button(~gooey, Rect(125, 20,  120, 30)).states_([["Device"], ["Device Options"]]);
-~configBtn     = Button(~gooey, Rect(250, 20,  120, 30)).states_([["Config"], ["Configuration Options"]]);
-~loadConfigBtn = Button(~gooey, Rect(125, 450, 120, 30)).states_([["Load Config File"]]);
+~gooey = {
+	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
+	var w, deviceBtn, configBtn, loadConfigBtn, tab_width, tab_height, tab_x, tab_y, padding;
 
-~devicesBtn.action = {
-	arg view, char; // switch to Device view (TODO)
+	tab_width  = 150;
+	tab_height = 30;
+	tab_x      = 100;
+	tab_y      = 20;
+	padding    = 15;
 
-	~devicesBtn.value = 1;
-	~configBtn.value  = 0;
-};
+	w             = Window.new("Pitch Tracker", Rect(x_pos, y_pos, width, height));
+	deviceBtn     = Button(w, Rect(tab_x, 20,  tab_width, tab_height)).states_([["Device"], ["Device Options"]]);
+	configBtn     = Button(w, Rect(tab_x + tab_width + padding, 20,  tab_width, tab_height)).states_([["Config"], ["Configuration Options"]]);
+	loadConfigBtn = Button(w, Rect(125, 450, 150, 30)).states_([["Load Config File"]]);
 
-~configBtn.action = {
-	arg view, char; // switch to Config view (TODO)
+	deviceBtn.action = {
+		arg view, char;
 
-	~configBtn.value  = 1;
-	~devicesBtn.value = 0;
-};
+		deviceBtn.value = 1;
+		configBtn.value = 0;
+	};
 
-~loadConfigBtn.action = {
-	arg view, char, f;
+	configBtn.action = {
+		arg view, char; // switch to Config view (TODO)
 
-	f = File(~currentDir +/+ "configure.txt", "w");
-	f.readAllString;
-	// if file exists, parse and load globals
-	// if not, create file with defaults
+		configBtn.value = 1;
+		deviceBtn.value = 0;
+	};
 
-	f.close; // safely remove device :P
-};
+	loadConfigBtn.action = {
+		arg view, char, f;
 
-~gooey.front;
+		f = File(~currentDir +/+ "configure.txt", "w");
+		f.readAllString;
+
+		f.close;
+	};
+
+	w.front;
+}.value;
 
 SynthDef(\freqTrack, {
 	arg threshold = (0.93), median = (63), framesize = (512), overlap = (256), delayTime = (0.10);
@@ -62,10 +72,6 @@ SynthDef(\freqTrack, {
 
 	  FreqTrack: Pipe in to Pitch
 	  calculates the MIDI number of the input sound
-	  median: remove outliers, 11 in this case takes the median of last 11 frames,
-	  framesize:
-	  overlap:
-	  delayTime:
 
 	*/
 
