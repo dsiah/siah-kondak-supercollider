@@ -122,6 +122,7 @@ SynthDef(\threshTest, {
 			"note on slur, pitch ".post;
 			~pitch.postln;
 			~lastPitch.postln;
+			m.noteOff(16, ~lastPitch, 0);
 			m.noteOn(16, ~pitch, 60);
 			~lastPitch = ~pitch;
 			~currentRes = ~resolution;
@@ -136,6 +137,7 @@ SynthDef(\threshTest, {
 	if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
 		"note on, pitch ".post;
 		~pitch.postln;
+		m.noteOff(16, ~lastPitch, 0);
 		m.noteOn(16, ~pitch, 60);
 		~lastPitch = ~pitch;
 		~onOrOff = true;
@@ -150,7 +152,7 @@ SynthDef(\threshTest, {
 
 	if((msg[3] == 1) && (~onOrOff) , {
 		"note off".postln;
-		m.allNotesOff(16);
+		m.noteOff(16, ~lastPitch, 0);
 		~onOrOff = false;
 	});
 }).add;
