@@ -4,31 +4,58 @@ GUI.qt;          // Platform independent GUI system
 MIDIClient.init; // initialize the MIDIClient on Server
 m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 
-~onOrOff = false; // Track note being (or not being) played
-~pitch = 0;
+~onOrOff     = false;
+~pitch       = 0;
 ~changePitch = 0;
-~lastPitch = 0;
-~resolution = 27; // Delay of frames between notes -- (Hacky should be fixed)
-~currentRes = 0;
-~currentDir = thisProcess.nowExecutingPath.dirname;
+~lastPitch   = 0;
+~resolution  = 7;
+~currentRes  = 0;
+~currentDir  = thisProcess.nowExecutingPath.dirname; // seemingly platform independent (Check TODO)
+~gooeyBounds = [500, 500, 500, 500];                 // x pos, y pos, width, height
 
 /* * * * * * * * * * * *
- *        GUI          *
- *        CODE         *
- * * * * * * * * * * * */
+  * - - - - - - - - - - *
+ * -       GUI         - *
+ * -       CODE        - *
+  *  - - - - - - - - -  *
+ * * * * * * * * * * * *
+ * TODO: create GUI Scope (that isn't global, TODO)
+*/
 
+~gooey         = Window.new("Pitch Tracker", Rect(500,500,500,500));
+~devicesBtn    = Button(~gooey, Rect(125, 20,  120, 30)).states_([["Device"], ["Device Options"]]);
+~configBtn     = Button(~gooey, Rect(250, 20,  120, 30)).states_([["Config"], ["Configuration Options"]]);
+~loadConfigBtn = Button(~gooey, Rect(125, 450, 120, 30)).states_([["Load Config File"]]);
 
-~gooey = Window.new("Pitch Tracker", Rect(500,500,500,500));
+~devicesBtn.action = {
+	arg view, char; // switch to Device view (TODO)
 
-~convig = File(~currentDir +/+ "configure.txt", "w");
-~convig.write("BLAH\nBlah\nblah");
-~convig.close;
+	~devicesBtn.value = 1;
+	~configBtn.value  = 0;
+};
+
+~configBtn.action = {
+	arg view, char; // switch to Config view (TODO)
+
+	~configBtn.value  = 1;
+	~devicesBtn.value = 0;
+};
+
+~loadConfigBtn.action = {
+	arg view, char, f;
+
+	f = File(~currentDir +/+ "configure.txt", "w");
+	f.readAllString;
+	// if file exists, parse and load globals
+	// if not, create file with defaults
+
+	f.close; // safely remove device :P
+};
 
 ~gooey.front;
 
-
 SynthDef(\freqTrack, {
-	arg threshold = (0.93), median = (15), framesize = (2048), overlap = (1024), delayTime = (0.10);
+	arg threshold = (0.93), median = (63), framesize = (512), overlap = (256), delayTime = (0.10);
 	var freq, in, tart, changeFreq;
 
 	/*
@@ -42,26 +69,26 @@ SynthDef(\freqTrack, {
 
 	*/
 
-	in = SoundIn.ar(0);
-	tart = Tartini.kr(in, threshold, framesize, 0, overlap);
-	freq = Median.kr(15, tart).cpsmidi.round;
-	changeFreq = DelayN.kr(Median.kr(23, tart).cpsmidi.round, delaytime: delayTime);
+	in         = SoundIn.ar(0);
+	tart       = Tartini.kr(in, threshold, framesize, 0, overlap);
+	freq       = Median.kr(median, tart).cpsmidi.round;
+	changeFreq = DelayN.kr(Median.kr(67, tart).cpsmidi.round, delaytime: delayTime);
 
-	SendReply.ar(Impulse.ar(200), 'pitch', [freq]);
-	SendReply.ar(Impulse.ar(200), 'changePitch', [changeFreq]);
+	SendReply.ar(Impulse.ar(50), 'pitch', [freq]);
+	SendReply.ar(Impulse.ar(50), 'changePitch', [changeFreq]);
 }).play;
 
 SynthDef(\threshTest, {
-	arg highThresh = (-22), lowThresh = (-40), delayTime = (0.05);
+	arg highThresh = (-22), lowThresh = (-40), delayTime = (0.10);
 	var amp, highTrig, lowTrig, in, sig;
 
-	in = SoundIn.ar(0);
+	in  = SoundIn.ar(0);
 	sig = DelayN.ar(in, delaytime: delayTime);
 	amp = Amplitude.kr(sig).ampdb; // return Amplitude to to Decibals
 	amp = K2A.ar(amp);             // to improve resolution of amplitude tracking control -> audio rate
 
 	highTrig = amp >= highThresh;
-	lowTrig = amp <= lowThresh;
+	lowTrig  = amp <= lowThresh;
 
 	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
@@ -90,13 +117,14 @@ SynthDef(\threshTest, {
 	|time, resp, msg|
 
 	~changePitch = msg[3];
-	if ((~currentRes <= 0) && ~onOrOff && not(~lastPitch == ~changePitch) && not(~lastPitch == ~pitch), {
-		"note on slur, pitch ".post;
-		~pitch.postln;
-		~lastPitch.postln;
-		m.noteOn(16, ~pitch, 60);
-		~lastPitch = ~pitch;
-		~currentRes = ~resolution;
+	if ((~currentRes <= 0) && ~onOrOff && not(~lastPitch == ~changePitch) &&
+		not(~lastPitch == ~pitch) && (~pitch == ~changePitch), {
+			"note on slur, pitch ".post;
+			~pitch.postln;
+			~lastPitch.postln;
+			m.noteOn(16, ~pitch, 60);
+			~lastPitch = ~pitch;
+			~currentRes = ~resolution;
 	});
 
 }).add;
