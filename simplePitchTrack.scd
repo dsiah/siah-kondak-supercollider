@@ -27,7 +27,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
 	var w, deviceBtn, configBtn, loadConfigBtn, saveBtn, tab_width, tab_height, tab_x, tab_y,
 	levelSlider, resolutionSlider, midis, audios, deviceView, configView, stageBounds,
-	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox;
+	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox;
 
 	tab_width   = 150;
 	tab_height  = 30;
@@ -45,20 +45,24 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	deviceView = CompositeView(w, stageBounds).background_(Color.fromHexString("#FFFFFF"));
 	configView = CompositeView(w, stageBounds).background_(Color.fromHexString("#FFFFFF"));
 
+	// Device View Elements
 	StaticText(deviceView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Audio Input Device");
 	StaticText(deviceView, Rect(tab_x, tab_x + 50, 300, 30)).string_("MIDI Output Device");
 	audioInBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
 	midiOutBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
 
+	// Config View Elements
 	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
 	StaticText(configView, Rect(tab_x - 50, tab_x + 50, 300, 30)).string_("Resolution");
+	StaticText(configView, Rect(tab_x - 50, tab_x - 25, 30, 30)).string_("Low");
+	StaticText(configView, Rect(width - 75, tab_x - 25, 30, 30)).string_("High");
 	lowThreshBox     = NumberBox(configView, Rect(tab_x - 50, tab_x, 30, 30));
 	highThreshBox    = NumberBox(configView, Rect(width - 75, tab_x, 30, 30));
+	resBox           = NumberBox(configView, Rect(width - 125, tab_x + 70, 30, 30));
 	levelSlider      = RangeSlider(configView, Rect(tab_x, tab_x, 300, 30));
-	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 300, 30)).action_({
-		ControlSpec(0, 100, \linear, 1.00).map(resolutionSlider.value);
-	});
+	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 300, 30));
 
+	// Attaching actions to Buttons
 	deviceBtn.action = {
 		arg view, char;
 
@@ -86,6 +90,20 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		f.readAllString;
 		// parse logic here
 		f.close;
+	};
+
+	resolutionSlider.action = {
+		var val;
+
+		val = ControlSpec(0, 100, \linear, 1.00).map(resolutionSlider.value);
+		resBox.value_(val);
+	};
+
+	resBox.action = {
+		var val;
+
+		val = resBox.value / 100;
+		resolutionSlider.value = val;
 	};
 
 	// initialization parameters
