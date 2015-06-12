@@ -25,29 +25,39 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 ~gooey = {
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
-	var w, deviceBtn, configBtn, loadConfigBtn, tab_width, tab_height, tab_x, tab_y, padding,
-	deviceView, configView, stageBounds, audioInBtn, midiOutBtn;
+	var w, deviceBtn, configBtn, loadConfigBtn, saveBtn, tab_width, tab_height, tab_x, tab_y,
+	levelSlider, resolutionSlider, midis, audios, deviceView, configView, stageBounds,
+	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox;
 
 	tab_width   = 150;
 	tab_height  = 30;
 	tab_x       = 100;
 	tab_y       = 20;
-	padding     = 15;
 	stageBounds = Rect(0, y_pos + (y_pos / 6), width, height - (height / 3));
 
 	w             = Window("Pitch Tracker", Rect(x_pos, y_pos, width, height), false);
 	deviceBtn     = Button(w, Rect(tab_x, 20,  tab_width, tab_height)).states_([["Device"], ["Device Options"]]);
-	configBtn     = Button(w, Rect(tab_x + tab_width + padding, 20,  tab_width, tab_height))
-	.states_([["Config"], ["Configuration Options"]]);
 	loadConfigBtn = Button(w, Rect(tab_x, 450, tab_width, tab_height)).states_([["Load Config File"]]);
+	saveBtn       = Button(w, Rect(tab_x + tab_width + 15, 450, tab_width, tab_height)).states_([["Save"]]);
+	configBtn     = Button(w, Rect(tab_x + tab_width + 15, 20,  tab_width, tab_height))
+	.states_([["Config"], ["Configuration Options"]]);
 
-	deviceView = CompositeView(w, stageBounds).background_(Color.fromHexString("#C0D1FF"));
+	deviceView = CompositeView(w, stageBounds).background_(Color.fromHexString("#FFFFFF"));
 	configView = CompositeView(w, stageBounds).background_(Color.fromHexString("#FFFFFF"));
 
 	StaticText(deviceView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Audio Input Device");
 	StaticText(deviceView, Rect(tab_x, tab_x + 50, 300, 30)).string_("MIDI Output Device");
 	audioInBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
 	midiOutBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
+
+	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
+	StaticText(configView, Rect(tab_x - 50, tab_x + 50, 300, 30)).string_("Resolution");
+	lowThreshBox     = NumberBox(configView, Rect(tab_x - 50, tab_x, 30, 30));
+	highThreshBox    = NumberBox(configView, Rect(width - 75, tab_x, 30, 30));
+	levelSlider      = RangeSlider(configView, Rect(tab_x, tab_x, 300, 30));
+	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 300, 30)).action_({
+		ControlSpec(0, 100, \linear, 1.00).map(resolutionSlider.value);
+	});
 
 	deviceBtn.action = {
 		arg view, char;
@@ -74,14 +84,20 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 		f = File(~currentDir +/+ "configure.txt", "w");
 		f.readAllString;
-
+		// parse logic here
 		f.close;
 	};
 
-
-
-
 	// initialization parameters
+	midis = [];
+	MIDIClient.destinations.do({
+		arg item, arr;
+
+		midis.add(item.device);
+	});
+	midiOutBtn.items_(midis);
+
+	levelSlider.setSpan(-100, 0);
 	deviceBtn.value    = 1;
 	deviceView.visible = true;
 	configView.visible = false;
