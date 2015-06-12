@@ -99,7 +99,7 @@ SynthDef(\threshTest, {
 
 	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
-}).play;
+}).play;//foo
 
 /*
 
