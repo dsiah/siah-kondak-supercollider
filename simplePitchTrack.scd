@@ -23,6 +23,8 @@ m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
     * * * * * * * * * * *
 */
 
+Window.closeAll; // Remove once development and debugging is complete (TODO)
+
 ~gooey = {
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
 	var w, deviceBtn, configBtn, loadConfigBtn, tab_width, tab_height, tab_x, tab_y, padding;
@@ -33,10 +35,14 @@ m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 	tab_y      = 20;
 	padding    = 15;
 
-	w             = Window.new("Pitch Tracker", Rect(x_pos, y_pos, width, height));
+	w             = Window("Pitch Tracker", Rect(x_pos, y_pos, width, height), false);
 	deviceBtn     = Button(w, Rect(tab_x, 20,  tab_width, tab_height)).states_([["Device"], ["Device Options"]]);
 	configBtn     = Button(w, Rect(tab_x + tab_width + padding, 20,  tab_width, tab_height)).states_([["Config"], ["Configuration Options"]]);
-	loadConfigBtn = Button(w, Rect(125, 450, 150, 30)).states_([["Load Config File"]]);
+	loadConfigBtn = Button(w, Rect(tab_x, 450, tab_width, tab_height)).states_([["Load Config File"]]);
+
+	// Incorporate Flow layout and Multiple views (TODO)
+
+
 
 	deviceBtn.action = {
 		arg view, char;
@@ -61,7 +67,9 @@ m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 		f.close;
 	};
 
-	w.front;
+	// w.background_(Color(1, 0.5 , 0, 0.5));
+	w.front.alwaysOnTop_(true);
+
 }.value;
 
 SynthDef(\freqTrack, {
