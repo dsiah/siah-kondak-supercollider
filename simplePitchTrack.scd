@@ -3,6 +3,7 @@
 GUI.qt;          // Platform independent GUI system
 MIDIClient.init; // initialize the MIDIClient on Server
 m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
+MIDIClient.destinations[0].device;
 
 ~onOrOff     = false;
 ~pitch       = 0;
@@ -128,8 +129,10 @@ SynthDef(\threshTest, {
 			"note on slur, pitch ".post;
 			~pitch.postln;
 			~lastPitch.postln;
-			m.noteOff(16, ~lastPitch, 0);
-			m.noteOn(16, ~pitch, 60);
+			if(~onOrOff,
+				m.noteOff(1, ~lastPitch, 60);
+			);
+			m.noteOn(1, ~pitch, 60);
 			~lastPitch = ~pitch;
 			~currentRes = ~resolution;
 	});
@@ -143,8 +146,7 @@ SynthDef(\threshTest, {
 	if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
 		"note on, pitch ".post;
 		~pitch.postln;
-		m.noteOff(16, ~lastPitch, 0);
-		m.noteOn(16, ~pitch, 60);
+		m.noteOn(1, ~pitch, 60);
 		~lastPitch = ~pitch;
 		~onOrOff = true;
 		~currentRes = ~resolution;
@@ -158,7 +160,7 @@ SynthDef(\threshTest, {
 
 	if((msg[3] == 1) && (~onOrOff) , {
 		"note off".postln;
-		m.noteOff(16, ~lastPitch, 0);
+		m.noteOff(1, ~lastPitch, 60);
 		~onOrOff = false;
 	});
 }).add;
