@@ -5,6 +5,7 @@ MIDIClient.init; // initialize the MIDIClient on Server
 m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 MIDIClient.destinations[0].device;
 
+
 ~onOrOff     = false;
 ~pitch       = 0;
 ~changePitch = 0;
@@ -14,12 +15,12 @@ MIDIClient.destinations[0].device;
 ~currentDir  = thisProcess.nowExecutingPath.dirname; // seemingly platform independent (Check TODO)
 
 /*
-    * * * * * * * * * * *
-   * - - - - - - - - - - *
-  * -       GUI         - *
-  * -       CODE        - *
-   *  - - - - - - - - -  *
-    * * * * * * * * * * *
+* * * * * * * * * * *
+* - - - - - - - - - - *
+* -       GUI         - *
+* -       CODE        - *
+*  - - - - - - - - -  *
+* * * * * * * * * * *
 */
 
 Window.closeAll; // Remove once development and debugging is complete (TODO)
@@ -77,6 +78,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		configView.visible = false;
 	};
 
+
 	configBtn.action = {
 		arg view, char;
 
@@ -115,6 +117,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 		val = ControlSpec(0, 100, \linear, 1.00).map(resolutionSlider.value);
 		resBox.value_(val);
+		~resolution = resBox.value;
 	};
 
 	resBox.action = {
@@ -125,7 +128,13 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	};
 
 	audioInBtn.action = {
-		audioInBtn.value.postln;
+		s.options.inDevice = ServerOptions.inDevices[audioInBtn.value];
+		s.quit;
+		s.waitForBoot(~backEnd);
+	};
+
+	midiOutBtn.action = {
+		m = MIDIOut(midiOutBtn.value);
 	};
 
 	// initialization parameters
@@ -133,7 +142,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	MIDIClient.destinations.do({
 		arg item, arr;
 
-		midis.add(item.device);
+		midis = midis.add(item.device + item.name);
 	});
 	midiOutBtn.items_(midis);
 	audioInBtn.items_(ServerOptions.inDevices);
@@ -151,110 +160,120 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	deviceView.visible = true;
 	configView.visible = false;
 
+	midiOutBtn.value = -1;
+	audioInBtn.value = -1;
+
 	w.background_(Color.fromHexString("#C0D1FF"));
 	w.front.alwaysOnTop_(true);
 
 }.value;
 
-SynthDef(\freqTrack, {
-	arg threshold = (0.93), median = (63), framesize = (512), overlap = (256), delayTime = (0.10);
-	var freq, in, tart, changeFreq;
+~backEnd = {
+	SynthDef(\freqTrack, {
+		arg threshold = (0.93), median = (63), framesize = (512), overlap = (256), delayTime = (0.10);
+		var freq, in, tart, changeFreq;
+
+		/*
+
+		FreqTrack: Pipe in to Pitch
+		calculates the MIDI number of the input sound
+
+		*/
+
+
+		in         = SoundIn.ar(0);
+		tart       = Tartini.kr(in, threshold, framesize, 0, overlap);
+		freq       = Median.kr(median, tart).cpsmidi.round;
+		changeFreq = DelayN.kr(Median.kr(67, tart).cpsmidi.round, delaytime: delayTime);
+
+		SendReply.ar(Impulse.ar(50), 'pitch', [freq]);
+		SendReply.ar(Impulse.ar(50), 'changePitch', [changeFreq]);
+	}).play;
+
+
+	SynthDef(\threshTest, {
+		arg highThresh = (-22), lowThresh = (-40), delayTime = (0.10);
+		var amp, highTrig, lowTrig, in, sig;
+
+		in  = SoundIn.ar(0);
+		sig = DelayN.ar(in, delaytime: delayTime);
+		amp = Amplitude.kr(sig).ampdb; // return Amplitude to to Decibals
+		amp = K2A.ar(amp);             // to improve resolution of amplitude tracking control -> audio rate
+
+
+		highTrig = amp >= highThresh;
+		lowTrig  = amp <= lowThresh;
+
+		SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
+		SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
+		SendReply.ar(Impulse.ar(30), 'amp', [Amplitude.kr(sig)]);
+	}).play;
 
 	/*
 
-	  FreqTrack: Pipe in to Pitch
-	  calculates the MIDI number of the input sound
+	OSC Responder (event emitters) for OSC messages
+	serve the purpose of dispatching anonymous functions
 
 	*/
 
-	in         = SoundIn.ar(0);
-	tart       = Tartini.kr(in, threshold, framesize, 0, overlap);
-	freq       = Median.kr(median, tart).cpsmidi.round;
-	changeFreq = DelayN.kr(Median.kr(67, tart).cpsmidi.round, delaytime: delayTime);
+	~oscr4.remove;
+	~oscr4 = OSCresponder(nil, 'pitch', {
+		|time, resp, msg|
 
-	SendReply.ar(Impulse.ar(50), 'pitch', [freq]);
-	SendReply.ar(Impulse.ar(50), 'changePitch', [changeFreq]);
-}).play;
+		~currentRes = ~currentRes -1;
+		if(not(msg[3] == ~pitch), {
+			~pitch = msg[3]; // save pitch to global variable ~pitch
+		});
 
-SynthDef(\threshTest, {
-	arg highThresh = (-22), lowThresh = (-40), delayTime = (0.10);
-	var amp, highTrig, lowTrig, in, sig;
+	}).add;
 
-	in  = SoundIn.ar(0);
-	sig = DelayN.ar(in, delaytime: delayTime);
-	amp = Amplitude.kr(sig).ampdb; // return Amplitude to to Decibals
-	amp = K2A.ar(amp);             // to improve resolution of amplitude tracking control -> audio rate
+	~oscr3.remove;
+	~oscr3 = OSCresponder(nil, 'changePitch', {
+		|time, resp, msg|
 
-	highTrig = amp >= highThresh;
-	lowTrig  = amp <= lowThresh;
+		~changePitch = msg[3];
+		if ((~currentRes <= 0) && ~onOrOff && not(~lastPitch == ~changePitch) &&
+			not(~lastPitch == ~pitch) && (~pitch == ~changePitch), {
+				"note on slur, pitch ".post;
+				~pitch.postln;
+				~lastPitch.postln;
+				if(~onOrOff,
+					m.noteOff(1, ~lastPitch, 60);
+				);
+				m.noteOn(1, ~pitch, 60);
+				~lastPitch = ~pitch;
+				~currentRes = ~resolution;
+		});
 
-	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
-	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
-	SendReply.ar(Impulse.ar(30), 'amp', [Amplitude.kr(sig)]);
-}).play;
+	}).add;
 
-/*
+	~oscr1.remove;
+	~oscr1 = OSCresponder(nil, 'highTrigVal', {
+		|time, resp, msg|
 
-  OSC Responder (event emitters) for OSC messages
-  serve the purpose of dispatching anonymous functions
-
-*/
-
-~oscr4.remove;
-~oscr4 = OSCresponder(nil, 'pitch', {
-	|time, resp, msg|
-
-	~currentRes = ~currentRes -1;
-	if(not(msg[3] == ~pitch), {
-		~pitch = msg[3]; // save pitch to global variable ~pitch
-	});
-
-}).add;
-
-~oscr3.remove;
-~oscr3 = OSCresponder(nil, 'changePitch', {
-	|time, resp, msg|
-
-	~changePitch = msg[3];
-	if ((~currentRes <= 0) && ~onOrOff && not(~lastPitch == ~changePitch) &&
-		not(~lastPitch == ~pitch) && (~pitch == ~changePitch), {
-			"note on slur, pitch ".post;
+		if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
+			"note on, pitch ".post;
 			~pitch.postln;
-			~lastPitch.postln;
-			if(~onOrOff,
-				m.noteOff(1, ~lastPitch, 60);
-			);
 			m.noteOn(1, ~pitch, 60);
 			~lastPitch = ~pitch;
+			~onOrOff = true;
 			~currentRes = ~resolution;
-	});
+		});
 
-}).add;
+	}).add;
 
-~oscr1.remove;
-~oscr1 = OSCresponder(nil, 'highTrigVal', {
-	|time, resp, msg|
+	~oscr2.remove;
+	~oscr2 = OSCresponder(nil, 'lowTrigVal', {
+		|time, resp, msg|
 
-	if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
-		"note on, pitch ".post;
-		~pitch.postln;
-		m.noteOn(1, ~pitch, 60);
-		~lastPitch = ~pitch;
-		~onOrOff = true;
-		~currentRes = ~resolution;
-	});
+		if((msg[3] == 1) && (~onOrOff) , {
+			"note off".postln;
+			m.noteOff(1, ~lastPitch, 60);
+			~onOrOff = false;
+		});
+	}).add;
 
-}).add;
+}
 
-~oscr2.remove;
-~oscr2 = OSCresponder(nil, 'lowTrigVal', {
-	|time, resp, msg|
-
-	if((msg[3] == 1) && (~onOrOff) , {
-		"note off".postln;
-		m.noteOff(1, ~lastPitch, 60);
-		~onOrOff = false;
-	});
-}).add;
 
 )

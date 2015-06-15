@@ -1,5 +1,0 @@
-Resolution
-Input
-MidiOut
-HighThresh
-LowThresh
