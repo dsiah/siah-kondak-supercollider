@@ -28,7 +28,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
 	var w, deviceBtn, configBtn, loadConfigBtn, saveBtn, tab_width, tab_height, tab_x, tab_y,
 	levelSlider, resolutionSlider, midis, audios, deviceView, configView, stageBounds,
-	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox;
+	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox, volumeSlider;
 
 	tab_width   = 150;
 	tab_height  = 30;
@@ -49,8 +49,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	// Device View Elements
 	StaticText(deviceView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Audio Input Device");
 	StaticText(deviceView, Rect(tab_x, tab_x + 50, 300, 30)).string_("MIDI Output Device");
-	audioInBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
-	midiOutBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
+	audioInBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
+	midiOutBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
+
+	StaticText(w, Rect(tab_x, tab_x + 200, 300, 40)).string_("Input Volume");
+	volumeSlider = LevelIndicator(w, Rect(tab_x, tab_x + 225, 300, 30));
 
 	// Config View Elements
 	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
@@ -84,12 +87,26 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		deviceView.visible = false;
 	};
 
-	loadConfigBtn.action = {
-		arg view, char, f;
-
+	saveBtn.action = {
 		f = File(~currentDir +/+ "configure.txt", "w");
-		f.readAllString;
-		// parse logic here
+
+		f.write(resBox.value        + "\n");
+		f.write(lowThreshBox.value  + "\n");
+		f.write(highThreshBox.value + "\n");
+		f.write(audioInBtn.value    + "\n");
+		f.write(midiOutBtn.value    + "\n");
+
+		f.close;
+	};
+
+	loadConfigBtn.action = {
+		arg view, char, f, data;
+
+		f = File(~currentDir +/+ "configure.txt", "r");
+		if (f.isOpen, {
+			5.do({ f.getLine.asInt.postln; });
+		});
+
 		f.close;
 	};
 
@@ -107,6 +124,10 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		resolutionSlider.value = val;
 	};
 
+	audioInBtn.action = {
+		audioInBtn.value.postln;
+	};
+
 	// initialization parameters
 	midis = [];
 	MIDIClient.destinations.do({
@@ -115,6 +136,15 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		midis.add(item.device);
 	});
 	midiOutBtn.items_(midis);
+	audioInBtn.items_(ServerOptions.inDevices);
+
+	~oscr5.remove;
+	~oscr5 = OSCresponder(nil, 'amp', {
+		|time, resp, msg, vol|
+
+		vol = msg[3];
+		{ volumeSlider.value = vol }.defer;
+	}).add;
 
 	levelSlider.setSpan(-100, 0);
 	deviceBtn.value    = 1;
@@ -160,7 +190,8 @@ SynthDef(\threshTest, {
 
 	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
-}).play;//foo
+	SendReply.ar(Impulse.ar(30), 'amp', [Amplitude.kr(sig)]);
+}).play;
 
 /*
 
