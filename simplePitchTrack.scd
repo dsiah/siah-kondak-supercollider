@@ -51,7 +51,9 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	StaticText(deviceView, Rect(tab_x, tab_x + 50, 300, 30)).string_("MIDI Output Device");
 	audioInBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
 	midiOutBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
-	volumeSlider = LevelIndicator(deviceView, Rect(tab_x, tab_x + 140, 300, 30));
+
+	StaticText(w, Rect(tab_x, tab_x + 200, 300, 40)).string_("Input Volume");
+	volumeSlider = LevelIndicator(w, Rect(tab_x, tab_x + 225, 300, 30));
 
 	// Config View Elements
 	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
@@ -98,17 +100,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	};
 
 	loadConfigBtn.action = {
-		arg view, char, f;
+		arg view, char, f, data;
 
 		f = File(~currentDir +/+ "configure.txt", "r");
 		if (f.isOpen, {
-
-
-		}, {
-
-			lowThreshBox.value  = 1;
-			highThreshBox.value = 2;
-			resBox.value        = 3;
+			5.do({ f.getLine.asInt.postln; });
 		});
 
 		f.close;
@@ -146,7 +142,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	~oscr5 = OSCresponder(nil, 'amp', {
 		|time, resp, msg, vol|
 
-		vol = ((100 - msg[3].abs) / 75);
+		vol = msg[3];
 		{ volumeSlider.value = vol }.defer;
 	}).add;
 
@@ -194,7 +190,7 @@ SynthDef(\threshTest, {
 
 	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
-	SendReply.ar(Impulse.ar(30), 'amp', [amp]);
+	SendReply.ar(Impulse.ar(30), 'amp', [Amplitude.kr(sig)]);
 }).play;
 
 /*
