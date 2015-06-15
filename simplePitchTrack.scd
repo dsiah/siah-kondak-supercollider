@@ -85,12 +85,32 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		deviceView.visible = false;
 	};
 
+	saveBtn.action = {
+		f = File(~currentDir +/+ "configure.txt", "w");
+
+		f.write(resBox.value        + "\n");
+		f.write(lowThreshBox.value  + "\n");
+		f.write(highThreshBox.value + "\n");
+		f.write(audioInBtn.value    + "\n");
+		f.write(midiOutBtn.value    + "\n");
+
+		f.close;
+	};
+
 	loadConfigBtn.action = {
 		arg view, char, f;
 
-		f = File(~currentDir +/+ "configure.txt", "w");
-		f.readAllString;
-		// parse logic here
+		f = File(~currentDir +/+ "configure.txt", "r");
+		if (f.isOpen, {
+
+
+		}, {
+
+			lowThreshBox.value  = 1;
+			highThreshBox.value = 2;
+			resBox.value        = 3;
+		});
+
 		f.close;
 	};
 
