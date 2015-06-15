@@ -3,7 +3,7 @@
 GUI.qt;          // Platform independent GUI system
 MIDIClient.init; // initialize the MIDIClient on Server
 m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
-ServerOptions.inDevices.postln;
+ServerOptions.postln;
 
 ~onOrOff     = false;
 ~pitch       = 0;
@@ -28,7 +28,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
 	var w, deviceBtn, configBtn, loadConfigBtn, saveBtn, tab_width, tab_height, tab_x, tab_y,
 	levelSlider, resolutionSlider, midis, audios, deviceView, configView, stageBounds,
-	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox;
+	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox, volumeSlider;
 
 	tab_width   = 150;
 	tab_height  = 30;
@@ -49,8 +49,9 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	// Device View Elements
 	StaticText(deviceView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Audio Input Device");
 	StaticText(deviceView, Rect(tab_x, tab_x + 50, 300, 30)).string_("MIDI Output Device");
-	audioInBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
-	midiOutBtn = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
+	audioInBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
+	midiOutBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
+	volumeSlider = LevelIndicator(deviceView, Rect(tab_x, tab_x + 140, 300, 30));
 
 	// Config View Elements
 	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
@@ -121,6 +122,14 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	midiOutBtn.items_(midis);
 	audioInBtn.items_(ServerOptions.inDevices);
 
+	~oscr5.remove;
+	~oscr5 = OSCresponder(nil, 'amp', {
+		|time, resp, msg, vol|
+
+		vol = ((100 - msg[3].abs) / 75);
+		{ volumeSlider.value = vol }.defer;
+	}).add;
+
 	levelSlider.setSpan(-100, 0);
 	deviceBtn.value    = 1;
 	deviceView.visible = true;
@@ -165,6 +174,7 @@ SynthDef(\threshTest, {
 
 	SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 	SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
+	SendReply.ar(Impulse.ar(30), 'amp', [amp]);
 }).play;
 
 /*
