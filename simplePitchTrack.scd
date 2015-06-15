@@ -3,6 +3,7 @@
 GUI.qt;          // Platform independent GUI system
 MIDIClient.init; // initialize the MIDIClient on Server
 m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
+ServerOptions.inDevices.postln;
 
 ~onOrOff     = false;
 ~pitch       = 0;
@@ -106,6 +107,10 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		resolutionSlider.value = val;
 	};
 
+	audioInBtn.action = {
+		audioInBtn.value.postln;
+	};
+
 	// initialization parameters
 	midis = [];
 	MIDIClient.destinations.do({
@@ -114,6 +119,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		midis.add(item.device);
 	});
 	midiOutBtn.items_(midis);
+	audioInBtn.items_(ServerOptions.inDevices);
 
 	levelSlider.setSpan(-100, 0);
 	deviceBtn.value    = 1;
