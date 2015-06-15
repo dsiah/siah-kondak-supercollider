@@ -74,6 +74,8 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		configView.visible = false;
 	};
 
+	~resolution.postln;
+
 	configBtn.action = {
 		arg view, char;
 
@@ -98,6 +100,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 		val = ControlSpec(0, 100, \linear, 1.00).map(resolutionSlider.value);
 		resBox.value_(val);
+		~resolution = resBox.value;
 	};
 
 	resBox.action = {
@@ -126,6 +129,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 }.value;
 
+
 SynthDef(\freqTrack, {
 	arg threshold = (0.93), median = (63), framesize = (512), overlap = (256), delayTime = (0.10);
 	var freq, in, tart, changeFreq;
@@ -137,6 +141,7 @@ SynthDef(\freqTrack, {
 
 	*/
 
+
 	in         = SoundIn.ar(0);
 	tart       = Tartini.kr(in, threshold, framesize, 0, overlap);
 	freq       = Median.kr(median, tart).cpsmidi.round;
@@ -144,7 +149,10 @@ SynthDef(\freqTrack, {
 
 	SendReply.ar(Impulse.ar(50), 'pitch', [freq]);
 	SendReply.ar(Impulse.ar(50), 'changePitch', [changeFreq]);
-}).play;
+}).send(s);
+
+~freqTrack = Synth.new(\freqTrack);
+
 
 SynthDef(\threshTest, {
 	arg highThresh = (-22), lowThresh = (-40), delayTime = (0.10);
