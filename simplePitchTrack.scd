@@ -29,7 +29,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
 	var w, deviceBtn, configBtn, loadConfigBtn, saveBtn, tab_width, tab_height, tab_x, tab_y,
 	levelSlider, resolutionSlider, midis, audios, deviceView, configView, stageBounds,
-	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox, volumeSlider;
+	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox, volumeSlider, delaySlider;
 
 	tab_width   = 150;
 	tab_height  = 30;
@@ -53,8 +53,8 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	audioInBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
 	midiOutBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
 
-	StaticText(w, Rect(tab_x, tab_x + 200, 300, 40)).string_("Input Volume");
-	volumeSlider = LevelIndicator(w, Rect(tab_x, tab_x + 225, 300, 30));
+	StaticText(w, Rect(tab_x, 75, 300, 40)).string_("Input Volume");
+	volumeSlider = LevelIndicator(w, Rect(tab_x, 100, 300, 30));
 
 	// Config View Elements
 	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
@@ -66,6 +66,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	resBox           = NumberBox(configView, Rect(width - 125, tab_x + 70, 30, 30));
 	levelSlider      = RangeSlider(configView, Rect(tab_x, tab_x, 300, 30));
 	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 300, 30));
+	delaySlider      = Slider(configView, Rect(tab_x, tab_x + 140, 300, 30));
 
 	// Attaching actions to Buttons
 	deviceBtn.action = {
