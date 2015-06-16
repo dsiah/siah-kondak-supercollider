@@ -15,6 +15,9 @@ MIDIClient.destinations[0].device;
 ~currentDir  = thisProcess.nowExecutingPath.dirname; // seemingly platform independent (Check TODO)
 ~highThresh = -22;
 ~lowThresh = -40;
+~delay = 0.1;
+~median = 63;
+
 
 /*
 * * * * * * * * * * *
@@ -105,6 +108,10 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	delaySlider.action = {
 		delayBox.value = (delaySlider.value / 4);
+		~delay = delayBox.value;
+		~median = (((~delay * 311).asInt * 2) + 1);
+		~freqTrack.set("delayTime", ~delay, "median", ~median);
+		~threshTest.set("delayTime", ~delay);
 	};
 
 	delayBox.action = {
@@ -112,6 +119,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		if ( delayBox.value < 0,    { delayBox.value = 0 });
 
 		delaySlider.value = delayBox.value * 4;
+
+		~delay = delayBox.value;
+		~median = (((~delay * 311).asInt * 2) + 1);
+		~freqTrack.set("delayTime", ~delay, "median", ~median);
+		~threshTest.set("delayTime", ~delay);
 	};
 
 	lowThreshBox.action  = {
@@ -220,10 +232,10 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	}).add;
 
 	// levelSlider Set Globals (TODO)
-	lowThreshBox.value  = -40;
-	highThreshBox.value = -22;
-	levelSlider.lo      = 1 - (-40 / -80);
-	levelSlider.hi      = 1 - (-20 / -80);
+	lowThreshBox.value  = ~lowThresh;
+	highThreshBox.value = ~highThresh;
+	levelSlider.lo      = (~lowThresh + 80) / 80;
+	levelSlider.hi      = (~highThresh + 80) / 80;
 
 	deviceBtn.value     = 1;
 	deviceView.visible  = true;
@@ -231,6 +243,12 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	midiOutBtn.value = -1;
 	audioInBtn.value = -1;
+
+	delaySlider.value = ~delay * 4;
+	delayBox.value = ~delay;
+
+	resolutionSlider.value = ~resolution / 100;
+	resBox.value = ~resolution;
 
 	w.background_(Color.fromHexString("#C0D1FF"));
 	w.front.alwaysOnTop_(true);
@@ -253,11 +271,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		in         = SoundIn.ar(0);
 		tart       = Tartini.kr(in, threshold, framesize, 0, overlap);
 		freq       = Median.kr(median, tart).cpsmidi.round;
-		changeFreq = DelayN.kr(Median.kr(67, tart).cpsmidi.round, delaytime: delayTime);
+		changeFreq = DelayN.kr(Median.kr((median + 4), tart).cpsmidi.round, delaytime: delayTime);
 
 		SendReply.ar(Impulse.ar(50), 'pitch', [freq]);
 		SendReply.ar(Impulse.ar(50), 'changePitch', [changeFreq]);
-	}).play;
+	}).play(args: [\median, ~median, \delayTime, ~delay]);
 
 
 	~threshTest = SynthDef(\threshTest, {
@@ -276,7 +294,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 		SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
 		SendReply.ar(Impulse.ar(30), 'amp', ((amp + 80)/80));
-	}).play(args: [\highThresh, ~highThresh, \lowThresh, ~lowThresh]);
+	}).play(args: [\highThresh, ~highThresh, \lowThresh, ~lowThresh, \delayTime, ~delay]);
 
 	/*
 
