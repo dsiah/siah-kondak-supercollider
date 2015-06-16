@@ -215,6 +215,9 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	// levelSlider Set Globals (TODO)
 	lowThreshBox.value  = -40;
 	highThreshBox.value = -22;
+	levelSlider.lo      = 1 - (-40 / -80);
+	levelSlider.hi      = 1 - (-20 / -80);
+
 	deviceBtn.value     = 1;
 	deviceView.visible  = true;
 	configView.visible  = false;
@@ -267,8 +270,6 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
 		SendReply.ar(Impulse.ar(30), 'amp', [Amplitude.kr(sig)]);
 	}).play(args: [\highThresh, ~highThresh, \lowThresh, ~lowThresh]);
-
-
 
 	/*
 
