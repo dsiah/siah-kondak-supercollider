@@ -13,6 +13,8 @@ MIDIClient.destinations[0].device;
 ~resolution  = 7;
 ~currentRes  = 0;
 ~currentDir  = thisProcess.nowExecutingPath.dirname; // seemingly platform independent (Check TODO)
+~highThresh = -22;
+~lowThresh = -40;
 
 /*
 * * * * * * * * * * *
@@ -84,6 +86,20 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	levelSlider.action = {
 		lowThreshBox.value  = (levelSlider.lo * 80 - 80).asInt;
 		highThreshBox.value = (levelSlider.hi * 80 - 80).asInt;
+
+		~highThresh = highThreshBox.value;
+		~lowThresh = lowThreshBox.value;
+		~threshTest.set("highThresh", ~highThresh, "lowThresh", ~lowThresh);
+	};
+
+	highThreshBox.action = {
+		~highThresh = highThreshBox.value;
+		~threshTest.set("highThresh", ~highThresh);
+	};
+
+	lowThreshBox.action = {
+		~lowThresh = lowThreshBox.value;
+		~threshTest.set("lowThresh", ~lowThresh);
 	};
 
 	delaySlider.action = {
@@ -180,7 +196,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 }.value;
 
 ~backEnd = {
-	SynthDef(\freqTrack, {
+	~freqTrack = SynthDef(\freqTrack, {
 		arg threshold = (0.93), median = (63), framesize = (512), overlap = (256), delayTime = (0.10);
 		var freq, in, tart, changeFreq;
 
@@ -202,8 +218,8 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	}).play;
 
 
-	SynthDef(\threshTest, {
-		arg highThresh = (-22), lowThresh = (-40), delayTime = (0.10);
+	~threshTest = SynthDef(\threshTest, {
+		arg highThresh = -22, lowThresh = -40, delayTime = (0.10);
 		var amp, highTrig, lowTrig, in, sig;
 
 		in  = SoundIn.ar(0);
@@ -218,7 +234,9 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 		SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
 		SendReply.ar(Impulse.ar(30), 'amp', [Amplitude.kr(sig)]);
-	}).play;
+	}).play(args: [\highThresh, ~highThresh, \lowThresh, ~lowThresh]);
+
+
 
 	/*
 
