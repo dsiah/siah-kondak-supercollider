@@ -29,7 +29,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
 	var w, deviceBtn, configBtn, loadConfigBtn, saveBtn, tab_width, tab_height, tab_x, tab_y,
 	levelSlider, resolutionSlider, midis, audios, deviceView, configView, stageBounds,
-	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox, volumeSlider, delaySlider;
+	audioInBtn, midiOutBtn, highThreshBox, lowThreshBox, resBox, delayBox, volumeSlider, delaySlider;
 
 	tab_width   = 150;
 	tab_height  = 30;
@@ -61,12 +61,14 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	StaticText(configView, Rect(tab_x - 50, tab_x + 50, 300, 30)).string_("Resolution");
 	StaticText(configView, Rect(tab_x - 50, tab_x - 25, 30, 30)).string_("Low");
 	StaticText(configView, Rect(width - 75, tab_x - 25, 30, 30)).string_("High");
+	StaticText(configView, Rect(tab_x, tab_x + 125, 300, 30)).string_("Delay");
 	lowThreshBox     = NumberBox(configView, Rect(tab_x - 50, tab_x, 30, 30));
 	highThreshBox    = NumberBox(configView, Rect(width - 75, tab_x, 30, 30));
-	resBox           = NumberBox(configView, Rect(width - 125, tab_x + 70, 30, 30));
+	resBox           = NumberBox(configView, Rect(width - 75, tab_x + 70, 30, 30));
 	levelSlider      = RangeSlider(configView, Rect(tab_x, tab_x, 300, 30));
-	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 300, 30));
-	delaySlider      = Slider(configView, Rect(tab_x, tab_x + 140, 300, 30));
+	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 350, 30));
+	delaySlider      = Slider(configView, Rect(tab_x, tab_x + 145, 300, 30));
+	delayBox         = NumberBox(configView, Rect(width - 75, tab_x + 145, 30, 30));
 
 	// Attaching actions to Buttons
 	deviceBtn.action = {
