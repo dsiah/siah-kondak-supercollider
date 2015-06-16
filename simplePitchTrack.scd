@@ -81,13 +81,16 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		configView.visible = false;
 	};
 
+	levelSlider.action = {
+		lowThreshBox.value  = (levelSlider.lo * 80 - 80).asInt;
+		highThreshBox.value = (levelSlider.hi * 80 - 80).asInt;
+	};
 
 	configBtn.action = {
 		arg view, char;
 
 		configBtn.value = 1;
-		deviceBtn.value = 0;
-
+		deviceBtn.value    = 0;
 		configView.visible = true;
 		deviceView.visible = false;
 	};
@@ -158,10 +161,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		{ volumeSlider.value = vol }.defer;
 	}).add;
 
-	levelSlider.setSpan(-100, 0);
+	levelSlider.setSpan(-80, 0);
 	deviceBtn.value    = 1;
 	deviceView.visible = true;
 	configView.visible = false;
+
 
 	midiOutBtn.value = -1;
 	audioInBtn.value = -1;
