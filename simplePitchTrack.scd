@@ -151,11 +151,14 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	saveBtn.action = {
 		f = File(~currentDir +/+ "configure.txt", "w");
 
-		f.write(resBox.value        + "\n");
-		f.write(lowThreshBox.value  + "\n");
-		f.write(highThreshBox.value + "\n");
 		f.write(audioInBtn.value    + "\n");
 		f.write(midiOutBtn.value    + "\n");
+		f.write(lowThreshBox.value  + "\n");
+		f.write(highThreshBox.value + "\n");
+		f.write(resBox.value        + "\n");
+		f.write(delayBox.value      + "\n");
+
+		"Sucessfully saved!".postln;
 
 		f.close;
 	};
@@ -165,7 +168,12 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 		f = File(~currentDir +/+ "configure.txt", "r");
 		if (f.isOpen, {
-			5.do({ f.getLine.asInt.postln; });
+			("Audio In: "   + f.getLine.asInt).postln;
+			("Midi Out: "   + f.getLine.asInt).postln;
+			("Low: "        + f.getLine.asInt).postln;
+			("High: "       + f.getLine.asInt).postln;
+			("Resolution: " + f.getLine.asInt).postln;
+			("Delay: "      + f.getLine.asFloat).postln;
 		});
 
 		f.close;
