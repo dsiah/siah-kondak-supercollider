@@ -53,8 +53,8 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	audioInBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
 	midiOutBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
 
-	StaticText(w, Rect(tab_x, 75, 300, 40)).string_("Input Volume");
-	volumeSlider = LevelIndicator(w, Rect(tab_x, 100, 300, 30));
+	StaticText(w, Rect(tab_x, 100, 300, 40)).string_("Input Volume");
+	volumeSlider = LevelIndicator(w, Rect(tab_x, 125, 300, 30));
 
 	// Config View Elements
 	StaticText(configView, Rect(tab_x, tab_x - 25, 300, 30)).string_("Levels");
@@ -197,12 +197,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	}).add;
 
 	// levelSlider Set Globals (TODO)
-	lowThreshBox.value  = -80;
-	highThreshBox.value = 0
+	lowThreshBox.value  = -40;
+	highThreshBox.value = -22;
 	deviceBtn.value     = 1;
 	deviceView.visible  = true;
 	configView.visible  = false;
-
 
 	midiOutBtn.value = -1;
 	audioInBtn.value = -1;
