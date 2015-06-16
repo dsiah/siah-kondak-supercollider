@@ -86,6 +86,10 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		highThreshBox.value = (levelSlider.hi * 80 - 80).asInt;
 	};
 
+	delaySlider.action = {
+		delayBox.value = (delaySlider.value / 4);
+	};
+
 	configBtn.action = {
 		arg view, char;
 
