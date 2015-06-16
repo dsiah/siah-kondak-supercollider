@@ -57,18 +57,18 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	volumeSlider = LevelIndicator(w, Rect(tab_x, 100, 300, 30));
 
 	// Config View Elements
-	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
+	StaticText(configView, Rect(tab_x, tab_x - 25, 300, 30)).string_("Levels");
 	StaticText(configView, Rect(tab_x - 50, tab_x + 50, 300, 30)).string_("Resolution");
 	StaticText(configView, Rect(tab_x - 50, tab_x - 25, 30, 30)).string_("Low");
 	StaticText(configView, Rect(width - 75, tab_x - 25, 30, 30)).string_("High");
-	StaticText(configView, Rect(tab_x, tab_x + 125, 300, 30)).string_("Delay");
+	StaticText(configView, Rect(tab_x - 50, tab_x + 125, 300, 30)).string_("Delay");
 	lowThreshBox     = NumberBox(configView, Rect(tab_x - 50, tab_x, 30, 30));
 	highThreshBox    = NumberBox(configView, Rect(width - 75, tab_x, 30, 30));
 	resBox           = NumberBox(configView, Rect(width - 75, tab_x + 70, 30, 30));
 	delayBox         = NumberBox(configView, Rect(width - 75, tab_x + 145, 30, 30));
 	levelSlider      = RangeSlider(configView, Rect(tab_x, tab_x, 300, 30));
 	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 350, 30));
-	delaySlider      = Slider(configView, Rect(tab_x, tab_x + 145, 300, 30));
+	delaySlider      = Slider(configView, Rect(tab_x - 50, tab_x + 145, 350, 30));
 
 
 	// Attaching actions to Buttons
@@ -157,14 +157,15 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	resBox.action = {
 		var val;
-		if ((resBox.value > 0.25), {
-			resBox.value = 0.25;
-			val = resBox.value;
-		}, {
-			val = (resBox.value / 100);
+		if ((resBox.value > 100), {
+			resBox.value = 100;
 		});
 
-		resolutionSlider.value = val;
+		if ((resBox.value < 0), {
+			resBox.value = 0;
+		});
+
+		resolutionSlider.value = resBox.value / 100;
 	};
 
 	audioInBtn.action = {
@@ -196,9 +197,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	}).add;
 
 	// levelSlider Set Globals (TODO)
-	deviceBtn.value    = 1;
-	deviceView.visible = true;
-	configView.visible = false;
+	lowThreshBox.value  = -80;
+	highThreshBox.value = 0
+	deviceBtn.value     = 1;
+	deviceView.visible  = true;
+	configView.visible  = false;
 
 
 	midiOutBtn.value = -1;
