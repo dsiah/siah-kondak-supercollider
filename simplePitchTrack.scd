@@ -12,17 +12,17 @@ MIDIClient.destinations[0].device;
 ~lastPitch   = 0;
 ~resolution  = 7;
 ~currentRes  = 0;
+~highThresh  = -22;
+~lowThresh   = -40;
 ~currentDir  = thisProcess.nowExecutingPath.dirname; // seemingly platform independent (Check TODO)
-~highThresh = -22;
-~lowThresh = -40;
 
 /*
-* * * * * * * * * * *
-* - - - - - - - - - - *
-* -       GUI         - *
-* -       CODE        - *
-*  - - - - - - - - -  *
-* * * * * * * * * * *
+    * * * * * * * * * * *
+   * - - - - - - - - - - *
+  * -       GUI         - *
+  * -       CODE        - *
+   *  - - - - - - - - -  *
+    * * * * * * * * * * *
 */
 
 Window.closeAll; // Remove once development and debugging is complete (TODO)
@@ -46,6 +46,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	configBtn     = Button(w, Rect(tab_x + tab_width + 15, 20,  tab_width, tab_height))
 	.states_([["Config"], ["Configuration Options"]]);
 
+	// Global View
 	deviceView = CompositeView(w, stageBounds).background_(Color.fromHexString("#FFFFFF"));
 	configView = CompositeView(w, stageBounds).background_(Color.fromHexString("#FFFFFF"));
 
