@@ -65,10 +65,11 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	lowThreshBox     = NumberBox(configView, Rect(tab_x - 50, tab_x, 30, 30));
 	highThreshBox    = NumberBox(configView, Rect(width - 75, tab_x, 30, 30));
 	resBox           = NumberBox(configView, Rect(width - 75, tab_x + 70, 30, 30));
+	delayBox         = NumberBox(configView, Rect(width - 75, tab_x + 145, 30, 30));
 	levelSlider      = RangeSlider(configView, Rect(tab_x, tab_x, 300, 30));
 	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 350, 30));
 	delaySlider      = Slider(configView, Rect(tab_x, tab_x + 145, 300, 30));
-	delayBox         = NumberBox(configView, Rect(width - 75, tab_x + 145, 30, 30));
+
 
 	// Attaching actions to Buttons
 	deviceBtn.action = {
@@ -88,6 +89,30 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	delaySlider.action = {
 		delayBox.value = (delaySlider.value / 4);
+	};
+
+	lowThreshBox.action  = {
+		if ((lowThreshBox.value > highThreshBox.value), {
+			lowThreshBox.value = highThreshBox.value;
+		});
+
+		if ((lowThreshBox.value < -80), {
+			lowThreshBox.value = -80;
+		});
+
+		levelSlider.lo = 1 - (lowThreshBox.value / -80);
+	};
+
+	highThreshBox.action = {
+		if ((highThreshBox.value < lowThreshBox.value), {
+			highThreshBox.value = lowThreshBox.value;
+		});
+
+		if ((highThreshBox.value > 0), {
+			highThreshBox.value = 0;
+		});
+
+		levelSlider.hi = 1 - (highThreshBox.value / -80);
 	};
 
 	configBtn.action = {
@@ -132,8 +157,13 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	resBox.action = {
 		var val;
+		if ((resBox.value > 0.25), {
+			resBox.value = 0.25;
+			val = resBox.value;
+		}, {
+			val = (resBox.value / 100);
+		});
 
-		val = resBox.value / 100;
 		resolutionSlider.value = val;
 	};
 
@@ -165,7 +195,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		{ volumeSlider.value = vol }.defer;
 	}).add;
 
-	levelSlider.setSpan(-80, 0);
+	// levelSlider Set Globals (TODO)
 	deviceBtn.value    = 1;
 	deviceView.visible = true;
 	configView.visible = false;
@@ -285,6 +315,5 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	}).add;
 
 }
-
 
 )
