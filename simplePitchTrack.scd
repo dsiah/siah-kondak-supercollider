@@ -293,7 +293,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 		SendReply.ar(Impulse.ar(50), 'highTrigVal', [highTrig]); // Respective triggers for noteOn
 		SendReply.ar(Impulse.ar(50), 'lowTrigVal', [lowTrig]);   // and noteOff
-		SendReply.ar(Impulse.ar(30), 'amp', ((amp + 80)/80));
+		SendReply.ar(Impulse.ar(30), 'amp', (((RunningSum.kr(Amplitude.kr(in).ampdb, 50) / 50) + 80)/80));
 	}).play(args: [\highThresh, ~highThresh, \lowThresh, ~lowThresh, \delayTime, ~delay]);
 
 	/*
