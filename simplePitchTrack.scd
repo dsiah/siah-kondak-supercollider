@@ -110,6 +110,8 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	delayBox.action = {
 		if ( delayBox.value > 0.25, { delayBox.value = 0.25 });
 		if ( delayBox.value < 0,    { delayBox.value = 0 });
+
+		delaySlider.value = delayBox.value * 4;
 	};
 
 	lowThreshBox.action  = {
