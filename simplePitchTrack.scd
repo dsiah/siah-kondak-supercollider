@@ -55,22 +55,23 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	audioInBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x, 300, 30));
 	midiOutBtn   = PopUpMenu(deviceView, Rect(tab_x, tab_x + 70, 300, 30));
 
-	StaticText(w, Rect(tab_x, 75, 300, 40)).string_("Input Volume");
-	volumeSlider = LevelIndicator(w, Rect(tab_x, 100, 300, 30));
+	StaticText(w, Rect(tab_x, 100, 300, 40)).string_("Input Volume");
+	volumeSlider = LevelIndicator(w, Rect(tab_x, 125, 300, 30));
 
 	// Config View Elements
-	StaticText(configView, Rect(tab_x, tab_x - 20, 300, 30)).string_("Levels");
+	StaticText(configView, Rect(tab_x, tab_x - 25, 300, 30)).string_("Levels");
 	StaticText(configView, Rect(tab_x - 50, tab_x + 50, 300, 30)).string_("Resolution");
 	StaticText(configView, Rect(tab_x - 50, tab_x - 25, 30, 30)).string_("Low");
 	StaticText(configView, Rect(width - 75, tab_x - 25, 30, 30)).string_("High");
-	StaticText(configView, Rect(tab_x, tab_x + 125, 300, 30)).string_("Delay");
+	StaticText(configView, Rect(tab_x - 50, tab_x + 125, 300, 30)).string_("Delay");
 	lowThreshBox     = NumberBox(configView, Rect(tab_x - 50, tab_x, 30, 30));
 	highThreshBox    = NumberBox(configView, Rect(width - 75, tab_x, 30, 30));
 	resBox           = NumberBox(configView, Rect(width - 75, tab_x + 70, 30, 30));
+	delayBox         = NumberBox(configView, Rect(width - 75, tab_x + 145, 30, 30));
 	levelSlider      = RangeSlider(configView, Rect(tab_x, tab_x, 300, 30));
 	resolutionSlider = Slider(configView, Rect(tab_x - 50, tab_x + 70, 350, 30));
-	delaySlider      = Slider(configView, Rect(tab_x, tab_x + 145, 300, 30));
-	delayBox         = NumberBox(configView, Rect(width - 75, tab_x + 145, 30, 30));
+	delaySlider      = Slider(configView, Rect(tab_x - 50, tab_x + 145, 350, 30));
+
 
 	// Attaching actions to Buttons
 	deviceBtn.action = {
@@ -104,6 +105,30 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	delaySlider.action = {
 		delayBox.value = (delaySlider.value / 4);
+	};
+
+	lowThreshBox.action  = {
+		if ((lowThreshBox.value > highThreshBox.value), {
+			lowThreshBox.value = highThreshBox.value;
+		});
+
+		if ((lowThreshBox.value < -80), {
+			lowThreshBox.value = -80;
+		});
+
+		levelSlider.lo = 1 - (lowThreshBox.value / -80);
+	};
+
+	highThreshBox.action = {
+		if ((highThreshBox.value < lowThreshBox.value), {
+			highThreshBox.value = lowThreshBox.value;
+		});
+
+		if ((highThreshBox.value > 0), {
+			highThreshBox.value = 0;
+		});
+
+		levelSlider.hi = 1 - (highThreshBox.value / -80);
 	};
 
 	configBtn.action = {
@@ -148,9 +173,15 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	resBox.action = {
 		var val;
+		if ((resBox.value > 100), {
+			resBox.value = 100;
+		});
 
-		val = resBox.value / 100;
-		resolutionSlider.value = val;
+		if ((resBox.value < 0), {
+			resBox.value = 0;
+		});
+
+		resolutionSlider.value = resBox.value / 100;
 	};
 
 	audioInBtn.action = {
@@ -181,11 +212,12 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		{ volumeSlider.value = vol }.defer;
 	}).add;
 
-	levelSlider.setSpan(-80, 0);
-	deviceBtn.value    = 1;
-	deviceView.visible = true;
-	configView.visible = false;
-
+	// levelSlider Set Globals (TODO)
+	lowThreshBox.value  = -40;
+	highThreshBox.value = -22;
+	deviceBtn.value     = 1;
+	deviceView.visible  = true;
+	configView.visible  = false;
 
 	midiOutBtn.value = -1;
 	audioInBtn.value = -1;
@@ -303,6 +335,5 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	}).add;
 
 }
-
 
 )
