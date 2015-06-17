@@ -163,8 +163,6 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 	saveBtn.action = {
 		f = File(~currentDir +/+ "configure.txt", "w");
 
-		f.write(audioInBtn.value    + "\n");
-		f.write(midiOutBtn.value    + "\n");
 		f.write(lowThreshBox.value  + "\n");
 		f.write(highThreshBox.value + "\n");
 		f.write(resBox.value        + "\n");
@@ -180,12 +178,57 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 		f = File(~currentDir +/+ "configure.txt", "r");
 		if (f.isOpen, {
-			("Audio In: "   + f.getLine.asInt).postln;
-			("Midi Out: "   + f.getLine.asInt).postln;
-			("Low: "        + f.getLine.asInt).postln;
-			("High: "       + f.getLine.asInt).postln;
-			("Resolution: " + f.getLine.asInt).postln;
-			("Delay: "      + f.getLine.asFloat).postln;
+
+
+			//lowThresh
+			~lowThresh = f.getLine.asFloat;
+			~threshTest.set("lowThresh", ~lowThresh);
+
+			levelSlider.lo = (((~lowThresh) + 80) / 80);
+			lowThreshBox.value = ~lowThresh;
+
+			//highThresh
+			~highThresh = f.getLine.asFloat;
+			~threshTest.set("highThresh", ~highThresh);
+
+			levelSlider.hi = (((~highThresh) + 80) / 80);
+			highThreshBox.value = ~highThresh;
+
+			//resolution
+			~resolution = f.getLine.asFloat;
+
+			resolutionSlider.value = ~resolution / 100;
+			resBox.value = ~resolution;
+
+			//delay
+			~delay = f.getLine.asFloat;
+			~threshTest.set("delayTime", ~delay);
+			~median = (((~delay * 311).asInt * 2) + 1);
+			~freqTrack.set("delayTime", ~delay, "median", ~median);
+
+			delaySlider.value = ~delay * 4;
+			delayBox.value = ~delay;
+
+			/*"\n".postln;
+			"GLOBALS:".postln;
+			" ------------------------".postln;
+			("lowThresh =" + ~lowThresh).postln;
+			("highThresh =" + ~highThresh).postln;
+			("resolution =" + ~resolution).postln;
+			("delay =" + ~delay).postln;
+			("median =" + ~median).postln;
+			" ------------------------".postln;
+			"\n".postln;
+			"ARGS:".postln;
+			" ------------------------".postln;
+			~threshTest.get(\lowThresh, { arg value; ("lowThresh = " + value).postln; });
+			~threshTest.get(\highThresh, { arg value; ("highThresh = " + value).postln; });
+			~threshTest.get(\delayTime, { arg value; ("threshDelayTime = " + value).postln; });
+			~freqTrack.get(\delayTime, { arg value; ("freqDelayTime = " + value).postln; });
+			~freqTrack.get(\median, { arg value; (("median = " + value) + "\n" + "------------------------").postln; });*/
+
+
+
 		});
 
 		f.close;
