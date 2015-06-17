@@ -3,7 +3,6 @@
 GUI.qt;          // Platform independent GUI system
 MIDIClient.init; // initialize the MIDIClient on Server
 m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
-MIDIClient.destinations[0].device;
 
 
 ~onOrOff     = false;
@@ -283,7 +282,6 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		{ volumeSlider.value = vol }.defer;
 	}).add;
 
-	// levelSlider Set Globals (TODO)
 	lowThreshBox.value  = ~lowThresh;
 	highThreshBox.value = ~highThresh;
 	levelSlider.lo      = (~lowThresh + 80) / 80;
@@ -304,6 +302,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 	w.background_(Color.fromHexString("#C0D1FF"));
 	w.front.alwaysOnTop_(true);
+	w.onClose = { "Keep that code tight!".postln; s.quit; 0.exit; };
 
 }.value;
 
