@@ -2,8 +2,6 @@
 
 GUI.qt;          // Platform independent GUI system
 MIDIClient.init; // initialize the MIDIClient on Server
-m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
-
 
 ~onOrOff     = false;
 ~pitch       = 0;
@@ -28,6 +26,14 @@ m = MIDIOut(0);  // use first MIDI Device (IAC BUS 1)
 */
 
 Window.closeAll; // Remove once development and debugging is complete (TODO)
+
+~midiWarning = {
+	//TO DO
+};
+
+~audioWarning = {
+	//TO DO
+};
 
 ~gooey = {
 	arg x_pos = (100), y_pos = (75), width = (500), height = (500);
