@@ -3,6 +3,7 @@ echo "includePaths:
     - overwrites
     - SCClassLibrary
     - plugins
+    - Extensions
 excludePaths:
     - /usr/share/SuperCollider/Extensions
     - /usr/share/SuperCollider/SCClassLibrary
