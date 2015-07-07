@@ -382,9 +382,9 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 				~pitch.postln;
 				~lastPitch.postln;
 				if(~onOrOff,
-					m.noteOff(1, ~lastPitch, 60);
+					m.noteOff(0, ~lastPitch, 60);
 				);
-				m.noteOn(1, ~pitch, 60);
+				m.noteOn(0, ~pitch, 60);
 				~lastPitch = ~pitch;
 				~currentRes = ~resolution;
 		});
@@ -398,7 +398,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 		if((msg[3] == 1) && not(~onOrOff) && (~currentRes <= 0), {
 			"note on, pitch ".post;
 			~pitch.postln;
-			m.noteOn(1, ~pitch, 60);
+			m.noteOn(0, ~pitch, 60);
 			~lastPitch = ~pitch;
 			~onOrOff = true;
 			~currentRes = ~resolution;
@@ -412,7 +412,7 @@ Window.closeAll; // Remove once development and debugging is complete (TODO)
 
 		if((msg[3] == 1) && (~onOrOff) , {
 			"note off".postln;
-			m.noteOff(1, ~lastPitch, 60);
+			m.noteOff(0, ~lastPitch, 60);
 			~onOrOff = false;
 		});
 	}).add;
